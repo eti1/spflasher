@@ -167,56 +167,6 @@ def upload_file(addr, data):
 		pos += len(chunk)
 	return True
 
-def load_hex(path):
-	def hex_sum(line):
-		return 0xff&(0x100-(0xff&sum(line)))
-		
-	def hex_read():
-		l = f.readline().strip()
-		if not l:		return None
-		l=l[1:]
-		try:	l = unhexlify(l)
-		except:raise ValueError("unhex: '%s'"%l)
-		if hex_sum(l[:-1]) != l[-1]:
-			raise ValueError("sum: 0x%02x != 0x%02x"%(hex_sum(l[:-1]) , l[-1]))
-		(nb,absaddr,kind),data = unpack(">BHB", l[:4]),l[4:-1]
-		if nb != len(data):
-			raise ValueError("nb %d, len %d"%(nb,len(data)))
-		return absaddr, kind, data
-
-	def hx8(d):
-		d = hexlify(d)
-		return " ".join(d[n:n+8] for n in range(0,len(d),8))
-
-	f = open(path,"rb")
-	state = 0
-	data = b""
-	offset = 0
-	base = 0
-	while True:
-		a, k, d = hex_read()
-		if offset == 0x10000 or base == 0:
-			if k != 4 or a != 0:
-				raise ValueError("A 0x%x K %d offset 0x%x in state0"%(a,k,offset))
-			new_base = unpack(">H", d)[0]<<16
-			if base != 0 and new_base != base + 0x10000:
-				raise ValueError("A 0x%x K %d offset 0x%x in state0.2"%(a,k,offset))
-			offset = 0
-			base = new_base
-		else:
-			if base == 0:
-				raise ValueError("no base")
-			if k == 5:
-				start_addr = unpack(">I", d)
-			elif k == 1:
-				break
-			else:
-				if k != 0 or offset != a:
-					raise ValueError("A 0x%x K %d offset 0x%x in state1"%(a,k,offset))
-				offset += len(d)
-				data += d
-	return data
-
 def main():
 	global s
 	mbn = gzip.open("files/exec").read()
