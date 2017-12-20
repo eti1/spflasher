@@ -70,8 +70,8 @@ MAX_CHUNK = 0x10000
 def send_recv(cmd,data="",flag_opt=3):
 	idx = 0
 	full = len(data)
+	left = full-idx
 	while True:
-		left = full-idx
 		lc = min(MAX_CHUNK, left)
 		flags = flag_opt
 		if left > MAX_CHUNK:
@@ -86,9 +86,10 @@ def send_recv(cmd,data="",flag_opt=3):
 		reply = read_packet()
 		if reply[0] != cmd:
 			raise ValueError("Invalid reply %d to cmd %d"%(reply[0],cmd))
+		idx += lc
+		left = full-idx
 		if left==0:
 			break
-		idx += lc
 	return reply
 
 def load_sf(p):
@@ -143,8 +144,9 @@ def main():
 	print ("Sending loader data")
 	cmd,flag,reply = send_recv(6, data=loader[1])
 
-	print ("Sending 0x19")
-	cmd,flag,reply = send_recv(0x19, data=pack(">HI",1,1))
+	cmd,flag,dev_info = read_packet()
+	assert(cmd==1)
+	print("\nDevice 2 info: %s"%dev_info)
 
 	print ("Sending 9")
 	cmd,flag,reply = send_recv(9, "\x02")

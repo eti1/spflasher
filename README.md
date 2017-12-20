@@ -14,5 +14,3 @@ Plug usb cable
 
 # Flash partitions:
 ./loader.py
-
-If it fail, try again.
