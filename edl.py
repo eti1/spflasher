@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 import sys
-from serial import Serial
+import serial
 from struct import pack,unpack
 from binascii import hexlify, unhexlify
 import os
@@ -156,31 +156,29 @@ def upload_file(addr, data):
 		pos += len(chunk)
 	return True
 
-def upload_file(addr, data):
-	N=1800
-	pos = addr
-	for i in range(0,len(data),N):
-		chunk = data[i:i+N]
-		if not cmd_writel(pos, chunk):
-			print("Write failed at %08x"%pos)
-			return False
-		pos += len(chunk)
-	return True
-
 def main():
 	global s
 	mbn = gzip.open("files/exec").read()
 	print("Waiting device...")
 	while True:
-		tty = find_tty()
-		if tty is not None:
-			break
-		time.sleep(.5)
-	print("Device found on %s"%tty)
-	s = Serial(tty)
+		while True:
+			tty = find_tty()
+			if tty is not None:
+				break
+			time.sleep(.5)
+		print("Device found on %s"%tty)
+		try:
+			s = serial.Serial(tty)
+		except serial.serialutil.SerialException as e:
+			print ("Exception: %s"%e)
+			time.sleep(.5)
+			continue
+		break
 	ver = cmd_getver()
 	print("Version info: %s"%(ver))
-	upload_file(0x2A000000, mbn)
-	cmd_execute(0x2A000000)
+	if not upload_file(0x2A000000, mbn):
+		return 1
+	if not cmd_execute(0x2A000000):
+		return 1
 
 if __name__ == '__main__': main()

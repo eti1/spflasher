@@ -9,8 +9,5 @@ Connect testpoint to ground. See image (ack NikkyM).
 
 Plug usb cable
 
-# Upload flash loader:
-./edl.py
-
-# Flash partitions:
-./loader.py
+# Resurrect:
+make
