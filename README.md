@@ -4,6 +4,7 @@ Stripped from s1tool
 
 # Reboot in qhsusb mode:
 Disconnect battery
+Reconnect battery
 
 Connect testpoint to ground. See image (ack NikkyM).
 
